@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Complaint Resolution Coach · SIXT Puerto Rico</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:16px}
+  body{
+    background:#0d0d0d;
+    color:#f0f0f0;
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    min-height:100vh;
+    padding:0 0 60px;
+  }
+
+  /* ── Header ── */
+  .top-bar{
+    background:#111;
+    border-bottom:1px solid #1e1e1e;
+    padding:14px 24px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    position:sticky;
+    top:0;
+    z-index:10;
+  }
+  .sixt-logo{
+    background:#ff5f00;
+    color:#fff;
+    font-weight:800;
+    font-size:14px;
+    letter-spacing:0.1em;
+    padding:4px 11px;
+    border-radius:3px;
+    text-decoration:none;
+    flex-shrink:0;
+  }
+  .top-divider{width:1px;height:22px;background:#2a2a2a;flex-shrink:0}
+  .top-title{font-size:14px;font-weight:600;color:#e8e8e8;letter-spacing:0.01em}
+  .top-sub{font-size:11px;color:#555;margin-top:1px}
+  .top-spacer{flex:1}
+  .lang-toggle{display:flex;gap:4px}
+  .lang-btn{
+    background:transparent;
+    border:1px solid #2a2a2a;
+    color:#666;
+    font-size:11px;
+    font-weight:600;
+    padding:4px 10px;
+    border-radius:4px;
+    cursor:pointer;
+    transition:all 0.15s;
+    letter-spacing:0.05em;
+  }
+  .lang-btn.active{background:#ff5f00;border-color:#ff5f00;color:#fff}
+  .lang-btn:hover:not(.active){border-color:#444;color:#aaa}
+
+  /* ── Layout ── */
+  .page{max-width:760px;margin:0 auto;padding:28px 20px 0}
+
+  /* ── Input card ── */
+  .input-card{
+    background:#141414;
+    border:1px solid #222;
+    border-radius:12px;
+    padding:20px;
+    margin-bottom:16px;
+  }
+  .field-label{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:0.12em;
+    color:#555;
+    text-transform:uppercase;
+    margin-bottom:7px;
+    display:block;
+  }
+  .complaint-textarea{
+    width:100%;
+    background:#0d0d0d;
+    border:1px solid #222;
+    border-radius:8px;
+    color:#e8e8e8;
+    font-size:13.5px;
+    font-family:inherit;
+    line-height:1.65;
+    padding:12px 14px;
+    resize:vertical;
+    min-height:100px;
+    outline:none;
+    transition:border-color 0.2s;
+    margin-bottom:14px;
+  }
+  .complaint-textarea:focus{border-color:#ff5f00}
+  .complaint-textarea::placeholder{color:#3a3a3a}
+
+  .meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+  @media(max-width:480px){.meta-grid{grid-template-columns:1fr}}
+
+  .select-field{
+    width:100%;
+    background:#0d0d0d;
+    border:1px solid #222;
+    border-radius:7px;
+    color:#e0e0e0;
+    font-size:13px;
+    font-family:inherit;
+    padding:9px 12px;
+    outline:none;
+    cursor:pointer;
+    appearance:none;
+    -webkit-appearance:none;
+    transition:border-color 0.2s;
+  }
+  .select-field:focus{border-color:#ff5f00}
+  .select-field option{background:#1a1a1a}
+
+  .analyze-btn{
+    width:100%;
+    background:#ff5f00;
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:0.04em;
+    padding:13px;
+    cursor:pointer;
+    transition:opacity 0.15s, transform 0.1s;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+  }
+  .analyze-btn:hover{opacity:0.88}
+  .analyze-btn:active{transform:scale(0.99)}
+  .analyze-btn:disabled{opacity:0.35;cursor:not-allowed;transform:none}
+
+  /* ── Loading ── */
+  .loading{display:none;text-align:center;padding:32px 20px}
+  .loading.visible{display:block}
+  .spinner{
+    width:28px;height:28px;
+    border:2px solid #222;
+    border-top-color:#ff5f00;
+    border-radius:50%;
+    animation:spin 0.75s linear infinite;
+    margin:0 auto 12px;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{font-size:13px;color:#555}
+
+  /* ── Result card ── */
+  .result-card{
+    background:#141414;
+    border:1px solid #222;
+    border-radius:12px;
+    overflow:hidden;
+    margin-bottom:16px;
+    display:none;
+  }
+  .result-card.visible{display:block;animation:fadeUp 0.3s ease}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+  .result-header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 18px;
+    border-bottom:1px solid #1e1e1e;
+    flex-wrap:wrap;
+  }
+  .cat-badge{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:4px 10px;
+    border-radius:20px;
+  }
+  .cat-fees{background:rgba(255,95,0,0.18);color:#ff7a2a}
+  .cat-wait{background:rgba(255,195,0,0.14);color:#f5b800}
+  .cat-vehicle{background:rgba(42,120,214,0.18);color:#5a9fe0}
+  .cat-insurance{background:rgba(160,80,230,0.15);color:#c07de0}
+  .cat-staff{background:rgba(220,60,60,0.18);color:#e07070}
+  .cat-billing{background:rgba(30,180,100,0.14);color:#3ec87a}
+  .cat-deposit{background:rgba(255,140,60,0.14);color:#ff9a45}
+  .cat-other{background:rgba(100,100,100,0.15);color:#888}
+
+  .sev-pill{
+    font-size:10px;font-weight:700;
+    letter-spacing:0.08em;text-transform:uppercase;
+    padding:3px 9px;border-radius:20px;
+  }
+  .sev-high{background:rgba(226,75,74,0.18);color:#e06060}
+  .sev-med{background:rgba(237,161,0,0.16);color:#e0a020}
+  .sev-low{background:rgba(27,175,122,0.16);color:#30b87a}
+
+  .result-body{padding:18px}
+
+  .section{margin-bottom:18px}
+  .section:last-child{margin-bottom:0}
+  .section-title{
+    font-size:10px;font-weight:700;
+    letter-spacing:0.12em;text-transform:uppercase;
+    color:#444;margin-bottom:8px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .section-title i{font-size:14px;color:#ff5f00}
+
+  .divider{height:1px;background:#1e1e1e;margin:16px 0}
+
+  .body-text{font-size:13.5px;color:#888;line-height:1.65}
+
+  .urgency-row{display:flex;align-items:center;gap:12px}
+  .urgency-num{font-size:28px;font-weight:700;color:#f0f0f0;min-width:32px}
+  .urgency-track{flex:1;height:5px;background:#222;border-radius:3px;overflow:hidden}
+  .urgency-fill{height:100%;background:#ff5f00;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+  .urgency-label{font-size:11px;color:#555;min-width:28px}
+
+  .script-wrap{position:relative}
+  .script-box{
+    background:#0d0d0d;
+    border-left:3px solid #ff5f00;
+    border-radius:0 8px 8px 0;
+    padding:13px 15px;
+    font-size:13.5px;
+    line-height:1.7;
+    color:#d8d8d8;
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
+  .copy-btn{
+    position:absolute;
+    top:8px;right:8px;
+    background:transparent;
+    border:1px solid #2a2a2a;
+    color:#555;
+    font-size:11px;
+    padding:3px 9px;
+    border-radius:4px;
+    cursor:pointer;
+    transition:all 0.15s;
+    font-family:inherit;
+  }
+  .copy-btn:hover{border-color:#ff5f00;color:#ff5f00}
+
+  .steps-list{display:flex;flex-direction:column;gap:8px}
+  .step-item{
+    display:flex;align-items:flex-start;gap:10px;
+    font-size:13.5px;color:#888;line-height:1.6;
+  }
+  .step-num{
+    width:20px;height:20px;
+    background:#ff5f00;
+    color:#fff;
+    font-size:10px;font-weight:700;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;margin-top:1px;
+  }
+
+  .escalate-box{
+    background:rgba(226,75,74,0.09);
+    border:1px solid rgba(226,75,74,0.25);
+    border-radius:8px;
+    padding:11px 14px;
+    font-size:13px;
+    color:#d06060;
+    line-height:1.6;
+    display:flex;gap:9px;align-items:flex-start;
+  }
+  .escalate-box i{font-size:16px;color:#e24b4a;flex-shrink:0;margin-top:1px}
+
+  .tip-box{
+    background:#111;
+    border:1px solid #1e1e1e;
+    border-radius:8px;
+    padding:11px 14px;
+    font-size:13px;
+    color:#666;
+    line-height:1.6;
+    font-style:italic;
+    display:flex;gap:9px;align-items:flex-start;
+  }
+  .tip-box i{font-size:15px;color:#ff5f00;flex-shrink:0;margin-top:1px}
+
+  .tags-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .tag{
+    font-size:11px;
+    padding:3px 9px;
+    border-radius:12px;
+    background:rgba(255,95,0,0.1);
+    color:#cc6020;
+    border:1px solid rgba(255,95,0,0.2);
+  }
+
+  .error-box{
+    background:rgba(226,75,74,0.09);
+    border:1px solid rgba(226,75,74,0.25);
+    border-radius:8px;
+    padding:12px 15px;
+    font-size:13px;
+    color:#d06060;
+    display:none;
+    margin-bottom:16px;
+  }
+  .error-box.visible{display:block}
+
+  /* API key prompt */
+  .key-card{
+    background:#141414;
+    border:1px solid #2a2a2a;
+    border-radius:12px;
+    padding:20px;
+    margin-bottom:16px;
+  }
+  .key-notice{font-size:12px;color:#555;line-height:1.6;margin-bottom:12px}
+  .key-notice a{color:#ff5f00;text-decoration:none}
+  .key-input-row{display:flex;gap:8px}
+  .key-input{
+    flex:1;
+    background:#0d0d0d;
+    border:1px solid #222;
+    border-radius:7px;
+    color:#e0e0e0;
+    font-size:13px;
+    font-family:'Courier New',monospace;
+    padding:9px 12px;
+    outline:none;
+    transition:border-color 0.2s;
+  }
+  .key-input:focus{border-color:#ff5f00}
+  .key-input::placeholder{color:#333}
+  .key-save-btn{
+    background:#ff5f00;
+    color:#fff;
+    border:none;
+    border-radius:7px;
+    font-size:13px;
+    font-weight:600;
+    padding:9px 16px;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:opacity 0.15s;
+  }
+  .key-save-btn:hover{opacity:0.85}
+  .key-status{font-size:11px;color:#3ec87a;margin-top:6px;display:none}
+  .key-status.visible{display:block}
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="top-bar">
+  <span class="sixt-logo">SIXT</span>
+  <div class="top-divider"></div>
+  <div>
+    <div class="top-title" id="top-title">Complaint Resolution Coach</div>
+    <div class="top-sub">Puerto Rico · Branch 40528 / 40857</div>
+  </div>
+  <div class="top-spacer"></div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('es')">ES</button>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- API Key setup -->
+  <div class="key-card" id="keyCard">
+    <label class="field-label" id="lbl-apikey">Anthropic API Key</label>
+    <p class="key-notice" id="key-notice">
+      This tool uses the Claude AI API. Enter your key once — it is saved only in your browser. 
+      Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
+    </p>
+    <div class="key-input-row">
+      <input class="key-input" id="apiKeyInput" type="password" placeholder="sk-ant-..." autocomplete="off">
+      <button class="key-save-btn" id="keySaveBtn" onclick="saveKey()">Save</button>
+    </div>
+    <div class="key-status" id="keyStatus">✓ Key saved</div>
+  </div>
+
+  <!-- Input card -->
+  <div class="input-card">
+    <label class="field-label" id="lbl-complaint">Customer complaint</label>
+    <textarea class="complaint-textarea" id="complaintInput"
+      placeholder="Paste the customer's complaint here — from SES survey, email, Google review, or verbally noted..."></textarea>
+
+    <div class="meta-grid">
+      <div>
+        <label class="field-label" id="lbl-channel">Source / channel</label>
+        <select class="select-field" id="channelSelect">
+          <option value="ses">SES Survey</option>
+          <option value="google">Google Review</option>
+          <option value="email">Email / Written</option>
+          <option value="verbal">Verbal (counter)</option>
+          <option value="ota">OTA (Priceline / Booking / Trip)</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label" id="lbl-loyalty">Loyalty status</label>
+        <select class="select-field" id="loyaltySelect">
+          <option value="Express">Express</option>
+          <option value="Gold">Gold</option>
+          <option value="Platinum">Platinum</option>
+          <option value="Diamond">Diamond</option>
+          <option value="Unknown">Unknown / None</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="analyze-btn" id="analyzeBtn" onclick="analyzeComplaint()">
+      <i class="ti ti-wand" aria-hidden="true"></i>
+      <span id="btn-label">Analyze &amp; Generate Resolution</span>
+    </button>
+  </div>
+
+  <!-- Error -->
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- Loading -->
+  <div class="loading" id="loadingArea">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loadingText">Analyzing complaint...</div>
+  </div>
+
+  <!-- Result -->
+  <div class="result-card" id="resultCard">
+    <div class="result-header" id="resultHeader"></div>
+    <div class="result-body" id="resultBody"></div>
+  </div>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'sixt_anthropic_key';
+let currentLang = 'en';
+
+/* ── Language ── */
+const T = {
+  en: {
+    topTitle: 'Complaint Resolution Coach',
+    apiKey: 'Anthropic API Key',
+    keyNotice: 'This tool uses the Claude AI API. Enter your key once — it is saved only in your browser. Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.',
+    keySave: 'Save',
+    keySaved: '✓ Key saved',
+    complaint: 'Customer complaint',
+    placeholder: "Paste the customer's complaint here — from SES survey, email, Google review, or verbally noted...",
+    channel: 'Source / channel',
+    loyalty: 'Loyalty status',
+    btnLabel: 'Analyze & Generate Resolution',
+    loading: ['Analyzing complaint…', 'Identifying root cause…', 'Generating resolution script…'],
+    severity: 'Severity',
+    urgency: 'Urgency score',
+    summary: 'Issue summary',
+    root: 'Root cause',
+    script: 'Apology script',
+    copy: 'Copy',
+    copied: '✓ Copied',
+    steps: 'Resolution steps',
+    escalate: 'Escalate to supervisor / GM',
+    tip: 'Preventive tip',
+    errNoKey: 'Please enter your Anthropic API key above first.',
+    errNoText: 'Please enter a customer complaint.',
+  },
+  es: {
+    topTitle: 'Coach de Resolución de Quejas',
+    apiKey: 'Clave API de Anthropic',
+    keyNotice: 'Esta herramienta usa la API de Claude AI. Ingresa tu clave una vez — se guarda solo en tu navegador. Obtén una clave en <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.',
+    keySave: 'Guardar',
+    keySaved: '✓ Clave guardada',
+    complaint: 'Queja del cliente',
+    placeholder: 'Pega aquí la queja del cliente — de SES, email, Google Review o anotada verbalmente...',
+    channel: 'Fuente / canal',
+    loyalty: 'Estado de lealtad',
+    btnLabel: 'Analizar y Generar Resolución',
+    loading: ['Analizando queja…', 'Identificando causa raíz…', 'Generando script de resolución…'],
+    severity: 'Severidad',
+    urgency: 'Puntuación de urgencia',
+    summary: 'Resumen del problema',
+    root: 'Causa raíz',
+    script: 'Script de disculpa',
+    copy: 'Copiar',
+    copied: '✓ Copiado',
+    steps: 'Pasos de resolución',
+    escalate: 'Escalar a supervisor / GM',
+    tip: 'Tip preventivo',
+    errNoKey: 'Por favor ingresa tu clave API de Anthropic primero.',
+    errNoText: 'Por favor ingresa la queja del cliente.',
+  }
+};
+
+function t(key) { return T[currentLang][key] || key; }
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b =>
+    b.classList.toggle('active', b.textContent.trim() === lang.toUpperCase()));
+  applyLabels();
+}
+
+function applyLabels() {
+  const lang = currentLang;
+  document.getElementById('top-title').textContent = t('topTitle');
+  document.getElementById('lbl-apikey').textContent = t('apiKey');
+  document.getElementById('key-notice').innerHTML = t('keyNotice');
+  document.getElementById('keySaveBtn').textContent = t('keySave');
+  document.getElementById('lbl-complaint').textContent = t('complaint');
+  document.getElementById('complaintInput').placeholder = t('placeholder');
+  document.getElementById('lbl-channel').textContent = t('channel');
+  document.getElementById('lbl-loyalty').textContent = t('loyalty');
+  document.getElementById('btn-label').textContent = t('btnLabel');
+}
+
+/* ── API Key ── */
+function saveKey() {
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (!val) return;
+  localStorage.setItem(STORAGE_KEY, val);
+  const status = document.getElementById('keyStatus');
+  status.textContent = t('keySaved');
+  status.classList.add('visible');
+  document.getElementById('keyCard').style.borderColor = 'rgba(62,200,122,0.4)';
+}
+
+function getKey() {
+  return localStorage.getItem(STORAGE_KEY) || document.getElementById('apiKeyInput').value.trim();
+}
+
+/* ── Analyze ── */
+async function analyzeComplaint() {
+  const key = getKey();
+  if (!key) { showError(t('errNoKey')); return; }
+  const complaint = document.getElementById('complaintInput').value.trim();
+  if (!complaint) { showError(t('errNoText')); return; }
+
+  clearError();
+  const channel = document.getElementById('channelSelect').value;
+  const loyalty = document.getElementById('loyaltySelect').value;
+  const lang = currentLang;
+
+  setLoading(true);
+
+  const prompt = `You are a customer experience coach for SIXT car rental at Luis Muñoz Marín International Airport, Puerto Rico (Branch 40528). Respond ONLY in ${lang === 'es' ? 'Spanish' : 'English'}.
+
+Analyze this customer complaint and return ONLY a valid JSON object (no markdown, no backticks, no explanation) with this exact structure:
+{
+  "category": one of ["Fees / Overcharging","Wait Times","Vehicle Condition","Insurance Upsell","Staff Behavior","Billing Error","Deposit / Refund","Other"],
+  "severity": one of ["High","Medium","Low"],
+  "urgency_score": integer 1-10,
+  "summary": "2-sentence plain summary of the core issue",
+  "root_cause": "1 sentence identifying the likely operational failure",
+  "apology_script": "Warm professional apology script the agent reads aloud. 3-4 sentences. Natural, specific to this customer issue.",
+  "resolution_steps": ["step 1","step 2","step 3"],
+  "escalate": true or false,
+  "escalation_reason": "why escalation is needed, or empty string",
+  "tags": ["short tag 1","short tag 2"],
+  "preventive_tip": "1 short actionable tip for the agent to prevent this in the future"
+}
+
+Channel: ${channel}
+Customer loyalty status: ${loyalty}
+Complaint: "${complaint}"`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error ${res.status}`);
+    }
+
+    const data = await res.json();
+    const raw = data.content.map(i => i.text || '').join('');
+    let parsed;
+    try {
+      parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    } catch(e) {
+      throw new Error('Could not parse AI response. Try again.');
+    }
+    setLoading(false);
+    renderResult(parsed);
+  } catch(err) {
+    setLoading(false);
+    showError(err.message);
+  }
+}
+
+/* ── UI helpers ── */
+function setLoading(on) {
+  document.getElementById('analyzeBtn').disabled = on;
+  document.getElementById('loadingArea').classList.toggle('visible', on);
+  document.getElementById('resultCard').classList.remove('visible');
+  if (on) {
+    const msgs = t('loading');
+    let i = 0;
+    const el = document.getElementById('loadingText');
+    el.textContent = msgs[0];
+    window._loadInterval = setInterval(() => { i = (i+1)%msgs.length; el.textContent = msgs[i]; }, 1800);
+  } else {
+    clearInterval(window._loadInterval);
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorBox');
+  el.innerHTML = `<i class="ti ti-alert-circle" style="margin-right:7px;vertical-align:-2px"></i>${msg}`;
+  el.classList.add('visible');
+}
+function clearError() {
+  document.getElementById('errorBox').classList.remove('visible');
+}
+
+/* ── Render result ── */
+function catClass(cat) {
+  return {
+    'Fees / Overcharging':'cat-fees',
+    'Wait Times':'cat-wait',
+    'Vehicle Condition':'cat-vehicle',
+    'Insurance Upsell':'cat-insurance',
+    'Staff Behavior':'cat-staff',
+    'Billing Error':'cat-billing',
+    'Deposit / Refund':'cat-deposit',
+    'Other':'cat-other'
+  }[cat] || 'cat-other';
+}
+
+function sevClass(s) {
+  return s === 'High' ? 'sev-high' : s === 'Medium' ? 'sev-med' : 'sev-low';
+}
+
+function sevLabel(s) {
+  if (currentLang !== 'es') return s;
+  return s === 'High' ? 'Alta' : s === 'Medium' ? 'Media' : 'Baja';
+}
+
+let scriptText = '';
+
+function copyScript() {
+  navigator.clipboard.writeText(scriptText).catch(() => {});
+  const btn = document.getElementById('copyScriptBtn');
+  btn.textContent = t('copied');
+  setTimeout(() => btn.textContent = t('copy'), 2000);
+}
+
+function renderResult(d) {
+  scriptText = d.apology_script || '';
+
+  /* Header */
+  document.getElementById('resultHeader').innerHTML = `
+    <span class="cat-badge ${catClass(d.category)}">${d.category}</span>
+    <span class="sev-pill ${sevClass(d.severity)}">${t('severity')}: ${sevLabel(d.severity)}</span>
+  `;
+
+  /* Body */
+  const stepsHtml = (d.resolution_steps || []).map((s, i) =>
+    `<div class="step-item">
+      <span class="step-num">${i+1}</span>
+      <span>${s}</span>
+    </div>`
+  ).join('');
+
+  const tagsHtml = (d.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('');
+
+  const escalateHtml = d.escalate ? `
+    <div class="divider"></div>
+    <div class="section">
+      <div class="escalate-box">
+        <i class="ti ti-alert-triangle"></i>
+        <div><strong>${t('escalate')}</strong>${d.escalation_reason ? ': ' + d.escalation_reason : ''}</div>
+      </div>
+    </div>` : '';
+
+  document.getElementById('resultBody').innerHTML = `
+    <div class="section">
+      <div class="section-title"><i class="ti ti-gauge" aria-hidden="true"></i>${t('urgency')}</div>
+      <div class="urgency-row">
+        <div class="urgency-num">${d.urgency_score}</div>
+        <div class="urgency-track"><div class="urgency-fill" id="urgFill" style="width:0%"></div></div>
+        <div class="urgency-label">/ 10</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+      <div class="section-title"><i class="ti ti-message-report" aria-hidden="true"></i>${t('summary')}</div>
+      <div class="body-text">${d.summary}</div>
+      ${tagsHtml ? `<div class="tags-row">${tagsHtml}</div>` : ''}
+    </div>
+
+    <div class="section">
+      <div class="section-title"><i class="ti ti-search" aria-hidden="true"></i>${t('root')}</div>
+      <div class="body-text">${d.root_cause}</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+      <div class="section-title"><i class="ti ti-speakerphone" aria-hidden="true"></i>${t('script')}</div>
+      <div class="script-wrap">
+        <div class="script-box">${d.apology_script}</div>
+        <button class="copy-btn" id="copyScriptBtn" onclick="copyScript()">${t('copy')}</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+      <div class="section-title"><i class="ti ti-list-check" aria-hidden="true"></i>${t('steps')}</div>
+      <div class="steps-list">${stepsHtml}</div>
+    </div>
+
+    ${escalateHtml}
+
+    <div class="divider"></div>
+
+    <div class="section">
+      <div class="section-title"><i class="ti ti-bulb" aria-hidden="true"></i>${t('tip')}</div>
+      <div class="tip-box"><i class="ti ti-bulb" aria-hidden="true"></i><div class="body-text">${d.preventive_tip}</div></div>
+    </div>
+  `;
+
+  document.getElementById('resultCard').classList.add('visible');
+
+  setTimeout(() => {
+    const fill = document.getElementById('urgFill');
+    if (fill) fill.style.width = (d.urgency_score * 10) + '%';
+  }, 80);
+}
+
+/* ── Init ── */
+(function init() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    document.getElementById('apiKeyInput').value = saved;
+    document.getElementById('keyStatus').textContent = T.en.keySaved;
+    document.getElementById('keyStatus').classList.add('visible');
+    document.getElementById('keyCard').style.borderColor = 'rgba(62,200,122,0.3)';
+  }
+  applyLabels();
+  document.getElementById('complaintInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) analyzeComplaint();
+  });
+})();
+</script>
+</body>
+</html>
